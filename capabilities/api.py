@@ -73,7 +73,7 @@ def install_management(app, store, loader):
 
     @app.get("/capabilities/assets/{name}", include_in_schema=False)
     async def asset(name: str):
-        if name not in {"app.js", "style.css", "adk-integration.js", "adk-integration.css", "model-thinking.js"}:
+        if name not in {"app.js", "style.css", "adk-integration.js", "adk-integration.css", "model-thinking.js", "model-engines.js", "model-picker.js"}:
             raise HTTPException(404)
         return FileResponse(STATIC / name)
 

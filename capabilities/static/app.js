@@ -3,7 +3,7 @@ const API = "/capabilities/api";
 const embedded = window.parent !== window && new URLSearchParams(location.search).get("embedded") === "1";
 const requestedAgent = new URLSearchParams(location.search).get("app") || "";
 if (embedded) document.body.classList.add("embedded");
-let state, view = "agents", selectedAgent, selectedServer = null, selectedSkill = null;
+let state, view = new URLSearchParams(location.search).get("view") === "models" ? "models" : "agents", selectedAgent, selectedServer = null, selectedSkill = null;
 let skillFiles = {}, skillFile = "SKILL.md", skillVersions = [], viewedVersion = null;
 let skillEnabled = true;
 let dirty = false;
@@ -15,6 +15,7 @@ function el(tag, attrs = {}, ...children) {
     if (key.startsWith("on")) node.addEventListener(key.slice(2), value);
     else if (key === "class") node.className = value;
     else if (key === "text") node.textContent = value;
+    else if (key === "list") node.setAttribute(key, value);
     else if (key in node) node[key] = value;
     else node.setAttribute(key, value);
   }
@@ -65,6 +66,7 @@ function render() {
   content.replaceChildren();
   if (view === "agents") renderAgents();
   else if (view === "mcp") renderMcp();
+  else if (view === "models") renderModels();
   else renderSkills();
 }
 function renderAgents() {

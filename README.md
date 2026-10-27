@@ -1,6 +1,6 @@
 # AI-Agent-Server
 
-基于 Google ADK 与 DeepSeek 的信用管家项目，包含 Agent 编辑与对话、公共工具、文件解析，以及按应用配置的 MCP / Skill 能力管理。
+基于 Google ADK 的信用管家项目，支持 DeepSeek、Kimi、OpenAI、Claude 和 OpenRouter，包含 Agent 编辑与对话、公共工具、文件解析，以及按应用配置的 MCP / Skill 能力管理。
 
 ## 环境与启动
 
@@ -15,9 +15,9 @@ python configure_deepseek_key.py
 python adk_web.py
 ```
 
-打开 <http://127.0.0.1:8000>，选择 `credit_manager` 开始对话。密钥由根目录 `.env` 或 `DEEPSEEK_API_KEY` 环境变量提供；模型与接口地址在 `model_profiles.json` 配置。
+打开 <http://127.0.0.1:8000>，选择 `credit_manager` 开始对话。也可跳过 `configure_deepseek_key.py`，启动后通过顶部“模型引擎”页面填写对应 Key。
 
-当前服务监听本机 `127.0.0.1:8000`，未实现面向公网的应用认证和多租户管理。模型推理、联网搜索与可选图片识别通过 DeepSeek API 完成。
+当前服务监听本机 `127.0.0.1:8000`，未实现面向公网的应用认证和多租户管理。对话推理由 Agent 选择的引擎完成；现有联网搜索、网页读取与可选图片识别工具仍使用 DeepSeek 的连接凭据。
 
 ## 项目结构
 
@@ -26,6 +26,7 @@ python adk_web.py
 | `adk_web.py` | 原生 ADK Web 启动、草稿加载、能力管理与附件插件接入 |
 | `builder_models.py` / `builder_tools.py` | Builder 模型选项、生成配置往返与公共工具入口适配 |
 | `model_runtime.py` / `model_profiles.json` | 模型注册、请求参数合并、默认模型与思考模式 |
+| `model_engines.py` / `model_engine_api.py` | 五引擎连接、独立凭据、默认模型、连接测试与模型发现 |
 | `credit_manager/` | 正式信用管家 YAML 和工具兼容入口 |
 | `prompts/credit_manager_system_prompt_v2.txt` | 当前信用管家提示词来源 |
 | `shared_tools/` | 公共工具注册、时间、网页搜索/读取、文档解析与图片识别 |
@@ -38,7 +39,33 @@ python adk_web.py
 
 ## 模型和能力配置
 
+### 配置模型引擎
+
+1. 点击 ADK 顶部 **模型引擎**，或 Agent 编辑页的 **连接设置**。
+2. 选择 DeepSeek、Kimi、OpenAI、Claude 或 OpenRouter，填写 API Base URL、API Key 和模型 ID。初始模型 ID 是可编辑的候选值，以实际账户权限和供应商返回为准。
+3. 可点击 **获取模型列表** 读取供应商目录，再填写支持对话和工具调用的模型；OpenRouter 使用完整模型 ID，例如 `openai/gpt-4.1-mini`。列表可能包含非对话模型，读取列表不代表已经验证模型推理。
+4. 点击 **测试连接**，发送一条简短消息确认所选模型能响应；会产生少量 API 用量。测试当前表单不保存配置，也不验证业务工具或全部模型能力。
+5. 点击 **保存引擎配置**。回到 Agent 编辑页选择 **模型引擎** 和 **Model**，再点击原生 **Save**；**Cancel** 放弃未保存的 Agent 修改。
+
+根 Agent 和子 Agent 可分别使用不同引擎。引擎连接保存后，Key 轮换与 API 地址修改在下一次模型请求生效，无需重启；保存引擎不会修改已有 Agent YAML。**设为新 Agent 默认** 只改变默认选择，刷新 ADK 页面后用于新建 Agent；已明确配置模型的 Agent 保持原选择。
+
+连接参数保存在本机 `model_engines.json`，凭据单独保存在根 `.env`（权限 `0600`）或对应环境变量。已保存 Key 不会通过管理 GET 接口回显；空白 Key 保留原值，只有显式勾选才清除本机保存值，环境变量提供的 Key 仍可生效。这些本机配置文件均由 `.gitignore` 排除。
+
+| 引擎 | Key 环境变量 | 默认 API Base URL |
+| --- | --- | --- |
+| DeepSeek | `DEEPSEEK_API_KEY` | `https://api.deepseek.com` |
+| Kimi | `MOONSHOT_API_KEY` | `https://api.moonshot.cn/v1` |
+| OpenAI | `OPENAI_API_KEY` | `https://api.openai.com/v1` |
+| Claude | `ANTHROPIC_API_KEY` | `https://api.anthropic.com` |
+| OpenRouter | `OPENROUTER_API_KEY` | `https://openrouter.ai/api/v1` |
+
+现有 DeepSeek 的 `model_profiles.json` 和旧 YAML 模型名保持兼容，无需迁移。其他模型通过 `engine/<engine>/<model-id>` 保存，例如 `engine/kimi/kimi-k3.1-pro`、`engine/openrouter/openai/gpt-4.1-mini`。供应商连接格式依据各自文档：[DeepSeek](https://api-docs.deepseek.com/)、[Kimi](https://platform.moonshot.cn/docs/guide/start-using-kimi-api)、[OpenAI](https://developers.openai.com/api/reference/resources/models/methods/list)、[Claude](https://platform.claude.com/docs/en/api/models/list)、[OpenRouter](https://openrouter.ai/docs/quickstart)。
+
+### 思考模式和 MCP / Skill
+
 在原生 Agent 编辑页选择模型，按节点设置思考模式，使用原生 **Save / Cancel** 保存或放弃修改。思考模式写入 YAML 的 `generate_content_config.http_options.extra_body.thinking.type`；未配置时沿用模型 profile 默认值。根 Agent 与子 Agent 可分别配置。
+
+当前思考开关仅适配 DeepSeek。切换到其他引擎时开关禁用，运行适配器会移除 DeepSeek 的 `thinking` 请求参数，并保留其他生成配置；不会把这一开关解释为所有供应商通用的思考设置。
 
 MCP / Skill 面板集成在 ADK 当前页，也可通过 `/capabilities` 打开。能力面板单独保存，原生 Agent 的 **Save** 不会提交尚未保存的能力选择。绑定粒度为应用，同一应用的根 Agent 和子 Agent 使用该应用的能力绑定；每次 invocation 固定能力快照。
 
@@ -61,7 +88,7 @@ Skill 支持完整 ZIP / `.skill` 包、文本和二进制资源，以及原生 
 现有回归不调用真实模型 API：
 
 ```bash
-python -m unittest test_skill_packages test_capabilities test_file_tools test_tool_registry test_web_tools test_adk_web test_model_thinking -q
+python -m unittest test_skill_packages test_capabilities test_file_tools test_tool_registry test_web_tools test_adk_web test_model_thinking test_model_engines test_model_engine_transport -q
 ```
 
 可选真实模型验收：

@@ -20,13 +20,14 @@
   dialog.append(bar, frame);
   document.body.append(dialog);
 
-  function open() {
+  function open(view = "agents") {
     if (dialog.open) return;
     returnFocus = document.activeElement;
     activeApp = currentApp();
     frameReady = false;
     context.textContent = activeApp ? "当前 Agent · " + activeApp : "选择 Agent 后配置能力";
-    frame.src = "/capabilities?embedded=1&app=" + encodeURIComponent(activeApp);
+    heading.textContent = view === "models" ? "模型引擎" : "MCP / Skill 配置";
+    frame.src = "/capabilities?embedded=1&view=" + view + "&app=" + encodeURIComponent(activeApp);
     dialog.showModal();
     close.focus();
   }
@@ -50,7 +51,9 @@
     if (event.origin !== origin || event.source !== frame.contentWindow || !dialog.open) return;
     if (event.data?.type === "adk-capabilities:ready") frameReady = true;
     if (event.data?.type === "adk-capabilities:close") finishClose();
+    if (event.data?.type === "adk-model-engines:changed") window.dispatchEvent(new Event("adk:model-engines-changed"));
   });
+  window.addEventListener("adk:open-model-engines", () => open("models"));
 
   function updateSummary() {
     const card = document.getElementById("adk-capability-card");
@@ -80,15 +83,18 @@
     const toolbar = document.querySelector("mat-toolbar.app-toolbar");
     if (toolbar && !document.getElementById("adk-capability-entry")) {
       const button = node("button", {id:"adk-capability-entry", type:"button", class:"adk-capability-entry", "aria-haspopup":"dialog", title:"配置 MCP 服务、Skill 与当前 Agent 的能力"}, "MCP / Skill 配置");
-      button.addEventListener("click", open);
+      button.addEventListener("click", () => open());
       toolbar.insertBefore(button, toolbar.querySelector(".user-avatar-button"));
+      const models = node("button", {id:"adk-model-engine-entry", type:"button", class:"adk-capability-entry", "aria-haspopup":"dialog"}, "模型引擎");
+      models.addEventListener("click", () => open("models"));
+      button.before(models);
     }
     const actions = document.querySelector("app-builder-tabs .action-buttons");
     if (actions && !document.getElementById("adk-capability-card")) {
       const card = node("section", {id:"adk-capability-card", "aria-label":"MCP 与 Skill"});
       card.append(node("h3", {}, "MCP 与 Skill"), node("p", {class:"adk-capability-summary"}), node("p", {class:"adk-capability-detail"}));
       const button = node("button", {type:"button", class:"adk-capability-configure", "aria-haspopup":"dialog"}, "配置服务与技能");
-      button.addEventListener("click", open);
+      button.addEventListener("click", () => open());
       card.append(button);
       actions.before(card);
     }

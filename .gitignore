@@ -10,6 +10,8 @@ __pycache__/
 .DS_Store
 *.log
 /capability_config.json
+/model_engines.json
+/.model-engine-*
 /capabilities/skill_library/
 
 # Tutorials, demo agents and unsaved local drafts

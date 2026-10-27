@@ -112,7 +112,9 @@ class BuilderLifecycleTest(unittest.TestCase):
                 self.assertEqual(response.headers["cache-control"], "no-store")
                 self.assertNotIn(SELECTOR_TOKEN, response.text)
                 self.assertNotIn(DEFAULT_TOKEN, response.text)
-                self.assertIn('models=["deepseek-flash", "deepseek-v4-pro"]', response.text)
+                self.assertIn('models=["deepseek-flash", "deepseek-v4-pro",', response.text)
+                for engine in ("kimi", "openai", "claude", "openrouter"):
+                    self.assertIn('"engine/' + engine + '/', response.text)
                 self.assertIn('model:"deepseek-flash"', response.text)
                 self.assertTrue('name:"DeepSeek 联网工具（本地）"' in response.text, "Local web tool category missing")
                 self.assertTrue('name:"通用工具（本地）"' in response.text, "Common tool category missing")

@@ -5,8 +5,9 @@ from pathlib import Path
 
 from google.adk.cli import fast_api
 
-from model_runtime import configured_model_ids, default_model_id, load_model_config
+from model_runtime import configured_model_ids, default_model_id
 from shared_tools.registry import ENTRYPOINT_MODULE, list_tools
+from model_engines import current_store
 
 SELECTOR_TOKEN = 'models=["gemini-2.5-flash","gemini-2.5-pro"]'
 DEFAULT_TOKEN = 'model:"gemini-2.5-flash"'
@@ -15,7 +16,7 @@ TOOL_RESULT_TOKEN = 'addTool(){let t={toolType:"Built-in tool",name:this.selecte
 TOOL_LABEL_TOKEN = 'ee(i.getToolIcon(e)),b(2),ee(e)}}function znt'
 
 
-def configure_thinking_editor(source: str) -> str:
+def configure_thinking_editor(source: str, store=None) -> str:
     """Preserve native per-node generation config and expose the active form.
 
     These are response-only adaptations of the existing model picker. The
@@ -38,10 +39,10 @@ def configure_thinking_editor(source: str) -> str:
         if source.count(token) != 1:
             raise RuntimeError("ADK model form changed; check thinking settings integration")
         source = source.replace(token, replacement)
-    defaults = {
-        profile["model"]: profile.get("thinking", "disabled")
-        for profile in load_model_config()["profiles"].values()
-    }
+    store = store or current_store()
+    profiles = {p["model"]: p for p in store.legacy()["profiles"].values()}
+    defaults = {item["reference"]: profiles.get(item["model"], {}).get("thinking", "disabled")
+                for item in store.catalog() if item["engine"] == "deepseek"}
     return "window.__adkThinkingDefaults=" + json.dumps(defaults) + ";\n" + source
 
 
@@ -64,17 +65,22 @@ def local_picker_config() -> tuple[str, dict[str, str], list[str]]:
     return catalog, labels, list(labels)
 
 
-def configured_browser_bundle() -> tuple[str, str]:
+def configured_browser_bundle(store=None) -> tuple[str, str]:
+    store = store or current_store()
     browser_dir = Path(fast_api.__file__).resolve().parent / "browser"
     for path in browser_dir.glob("main-*.js"):
         source = path.read_text()
         if SELECTOR_TOKEN not in source:
             continue
-        models = json.dumps(configured_model_ids(), ensure_ascii=False)
-        default = json.dumps(default_model_id(), ensure_ascii=False)
+        models = json.dumps(configured_model_ids(store), ensure_ascii=False)
+        default = json.dumps(default_model_id(store), ensure_ascii=False)
         source = source.replace(SELECTOR_TOKEN, f"models={models}")
         source = source.replace(DEFAULT_TOKEN, f"model:{default}")
-        source = source.replace("Ask Gemini to build your agent", "Ask DeepSeek to build your agent")
+        source = source.replace("Ask Gemini to build your agent", "Ask " + store.snapshot()["engines"][store.resolve(default_model_id(store))[0]]["name"] + " to build your agent")
+        label_token = 'function lit(n,t){if(n&1&&(h(0,"mat-option",34),w(1),g()),n&2){let e=t.$implicit;B("value",e),b(),ee(e)}}'
+        if source.count(label_token) != 1:
+            raise RuntimeError("ADK model option template changed; check model engine labels")
+        source = source.replace(label_token, label_token.replace('ee(e)', 'ee((window.__adkModelLabels||{})[e]||e)'))
         # Add local functions to the native picker. They remain ordinary Python
         # function references in YAML, not ADK built-ins or arguments/factories.
         for token in (TOOL_CATALOG_TOKEN, TOOL_RESULT_TOKEN, TOOL_LABEL_TOKEN):
@@ -102,5 +108,5 @@ def configured_browser_bundle() -> tuple[str, str]:
             + json.dumps(labels, ensure_ascii=False)
             + ')[e.slice(e.indexOf("."))]||e)}}function znt',
         )
-        return f"/dev-ui/{path.name}", configure_thinking_editor(source)
+        return f"/dev-ui/{path.name}", configure_thinking_editor(source, store)
     raise RuntimeError("ADK Builder UI layout changed; check the model selector integration")

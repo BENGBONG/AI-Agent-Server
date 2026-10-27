@@ -24,6 +24,7 @@ def install_adk_integration(app):
             b'<link rel="stylesheet" href="/capabilities/assets/adk-integration.css">'
             b'<script defer src="/capabilities/assets/adk-integration.js"></script>'
             b'<script defer src="/capabilities/assets/model-thinking.js"></script>'
+            b'<script defer src="/capabilities/assets/model-picker.js"></script>'
         )
         body = body.replace(b"</head>", extension + b"</head>", 1)
         headers = {key: value for key, value in response.headers.items()

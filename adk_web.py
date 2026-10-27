@@ -16,29 +16,36 @@ import uvicorn
 
 from builder_models import configured_browser_bundle
 from builder_tools import install_registered_tools
-from model_runtime import configure_default_models, configured_model_ids, default_model_id
+from model_runtime import configure_default_models, configured_model_ids, default_model_id, DynamicDefaultModel
+from model_engines import EngineStore, use_engine_store
+from model_engine_api import install_model_api
 from capabilities.api import install_management
 from capabilities.store import CapabilityStore
 from capabilities.runtime import BoundCapabilities
 from capabilities.web_integration import install_adk_integration
 
 class DraftAwareAgentLoader(NestedAgentLoader):
-    def __init__(self, agents_dir, capability_store=None):
+    def __init__(self, agents_dir, capability_store=None, engine_store=None):
         super().__init__(agents_dir)
         self.capability_store = capability_store or CapabilityStore(agents_dir)
+        self.engine_store = engine_store or EngineStore(Path(__file__).parent)
 
     def _perform_load(self, agent_path: str):
+        with use_engine_store(self.engine_store):
+            return self._perform_load_with_engines(agent_path)
+
+    def _perform_load_with_engines(self, agent_path: str):
         if agent_path == "__adk_agent_builder_assistant":
             self._validate_agent_name(agent_path)
             from google.adk.cli.built_in_agents.adk_agent_builder_assistant import AgentBuilderAssistant
 
             assistant = AgentBuilderAssistant.create_agent(
-                model=default_model_id(), working_directory=self.agents_dir,
+                model=default_model_id(self.engine_store), working_directory=self.agents_dir,
             )
+            assistant.model = DynamicDefaultModel(model=default_model_id(self.engine_store), engine_store=self.engine_store)
             original_instruction = assistant.instruction
-            model_ids = configured_model_ids()
-
             def instruction(context):
+                model_ids = configured_model_ids(self.engine_store)
                 text = original_instruction(context)
                 for old, model_id in zip(
                     ["gemini-2.5-flash", "gemini-2.5-pro"], model_ids,
@@ -47,7 +54,7 @@ class DraftAwareAgentLoader(NestedAgentLoader):
                 return text + (
                     "\nUse only these locally configured model IDs: "
                     + ", ".join(model_ids)
-                    + ". Default: " + default_model_id() + "."
+                    + ". Default: " + default_model_id(self.engine_store) + "."
                 )
 
             assistant.instruction = instruction
@@ -55,6 +62,10 @@ class DraftAwareAgentLoader(NestedAgentLoader):
         loaded = super()._perform_load(agent_path)
         agent = getattr(loaded, "root_agent", loaded)
         def attach(node):
+            if hasattr(node, "canonical_model"):
+                # Resolve inside this app's context before any cached Runner
+                # accesses a model outside the loader call.
+                node.canonical_model
             if hasattr(node, "tools"):
                 node.tools = [tool for tool in node.tools if not isinstance(tool, BoundCapabilities)] + [BoundCapabilities(self.capability_store, agent_path)]
             for child in getattr(node, "sub_agents", []):
@@ -90,13 +101,15 @@ class DraftAwareAgentLoader(NestedAgentLoader):
         return None
 
 
-def create_app(agents_dir: Path, *, reload_agents: bool = True):
+def create_app(agents_dir: Path, *, reload_agents: bool = True, engine_store=None):
     root = str(agents_dir.resolve())
     install_registered_tools(Path(root))
-    configure_default_models()
-    browser_path, browser_source = configured_browser_bundle()
+    engine_store = engine_store or EngineStore(Path(__file__).parent)
+    configure_default_models(engine_store)
+    browser_path, browser_source = configured_browser_bundle(engine_store)
+    browser_revision = engine_store.snapshot()["revision"]
     capability_store = CapabilityStore(root)
-    loader = DraftAwareAgentLoader(root, capability_store)
+    loader = DraftAwareAgentLoader(root, capability_store, engine_store)
     app = get_fast_api_app(
         agents_dir=root,
         agent_loader=loader,
@@ -104,15 +117,23 @@ def create_app(agents_dir: Path, *, reload_agents: bool = True):
         bind_host="127.0.0.1",
         port=8000,
         reload_agents=reload_agents,
-        default_llm_model=default_model_id(),
+        # Agent defaults are updated by the settings API; a fixed override here
+        # would undo that update when ADK creates another Runner.
+        default_llm_model=None,
         extra_plugins=["upload_handling.UploadedFilesPlugin", "capabilities.runtime.CapabilityCleanupPlugin"],
     )
     install_management(app, capability_store, loader)
+    install_model_api(app, engine_store, loader)
     install_adk_integration(app)
 
     @app.middleware("http")
     async def read_builder_draft_when_unsaved(request, call_next):
+        nonlocal browser_source, browser_revision
         if request.method == "GET" and request.url.path == browser_path:
+            revision = engine_store.snapshot()["revision"]
+            if revision != browser_revision:
+                _, browser_source = configured_browser_bundle(engine_store)
+                browser_revision = revision
             return Response(
                 browser_source,
                 media_type="application/javascript",
