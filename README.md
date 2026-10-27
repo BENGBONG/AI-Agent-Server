@@ -2,6 +2,12 @@
 
 基于 Google ADK 的信用管家项目，支持 DeepSeek、Kimi、OpenAI、Claude 和 OpenRouter，包含 Agent 编辑与对话、公共工具、文件解析，以及按应用配置的 MCP / Skill 能力管理。
 
+## 外部调用接口
+
+[标准接入指南](docs/api/README.md)提供会话、普通/SSE 调用、附件、用户确认回传和本机模型/MCP/Skill 配置的调用方式；[完整端点参考](docs/api/ENDPOINTS.md)列出 81 个 HTTP 操作，[OpenAPI 3.1 定义](docs/api/openapi.json)可导入 API 客户端。
+
+接口文档区分业务调用、本机管理和条件能力。当前服务仅监听本机且没有应用级身份鉴权，原生 Live 路由也不代表当前五引擎已支持双向实时连接。
+
 ## 环境与启动
 
 使用 Python 3.12。依赖版本固定在 `requirements.txt`，主要框架为 Google ADK 2.12.0 与 LiteLLM 1.106.1。

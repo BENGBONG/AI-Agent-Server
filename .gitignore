@@ -35,3 +35,4 @@ __pycache__/
 /docs/*
 !/docs/credit-manager-skills-design-v1.md
 !/docs/credit-skills-detailed-design-v1/
+!/docs/api/

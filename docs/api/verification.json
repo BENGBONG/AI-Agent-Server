@@ -1,0 +1,71 @@
+{
+  "date": "2026-10-27",
+  "code_baseline": "ce7df9bc4443a9f7adcc0c9a2a2ac2afed6d0cfa",
+  "runtime_openapi_sha256": "7e524b8ff22f493b6cff2a4d69be9925b0f21d957146b1ef5e1c7cdbdf2c1d90",
+  "openapi": "3.1.0",
+  "paths": 66,
+  "http_operations": 81,
+  "schema_definitions": 208,
+  "operation_scopes": {
+    "business": 20,
+    "conditional": 6,
+    "development": 41,
+    "local-management": 14
+  },
+  "checks": {
+    "official_openapi_metaschema": "PASS",
+    "json_schema_components": "PASS",
+    "internal_references": "PASS",
+    "operation_ids_unique": "PASS",
+    "runtime_http_method_path_coverage": "PASS",
+    "generated_reference_consistent": "PASS",
+    "guide_json_examples": 9,
+    "captured_synthetic_response_schemas": "PASS"
+  },
+  "contract_smoke": {
+    "checks": 23,
+    "result": "PASS",
+    "uses": "isolated FastAPI TestClient with synthetic Agent/session/Artifact and mocked model client",
+    "check_names": [
+      "camelCase session creation",
+      "session response uses camelCase",
+      "state patch",
+      "artifact JSON upload",
+      "artifact JSON download",
+      "run Event array",
+      "SSE media type and frames",
+      "SSE has no DONE sentinel",
+      "snake_case request compatibility",
+      "choice returns pending function call",
+      "user choice functionResponse continuation",
+      "missing session before SSE",
+      "missing app returns 400",
+      "missing user validation",
+      "cross-origin blocked",
+      "local management origin blocked",
+      "Skill JSON schema request",
+      "application binding schema request",
+      "stale capability revision returns 409",
+      "model response does not contain Key",
+      "MCP revision differs from models revision",
+      "session deletion returns JSON null",
+      "deleted session returns 404"
+    ],
+    "live_model_api_used": false,
+    "production_config_modified": false
+  },
+  "not_executed": [
+    "All 81 HTTP operations individually",
+    "Cloud deployment",
+    "Agent Identity cloud authorization",
+    "Live voice/video",
+    "Real model inference in this documentation task"
+  ],
+  "document_enrichments": [
+    "自有管理接口请求/响应 schema 和错误响应",
+    "SSE 正确媒体类型和事件说明",
+    "访问范围与条件能力标记",
+    "兼容路由重复 operationId 的文档层去重"
+  ],
+  "runtime_implementation_changed": false
+}
