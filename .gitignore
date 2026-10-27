@@ -1,0 +1,35 @@
+# Local environment and runtime data
+.venv/
+.env
+.env.*
+!.env.example
+.adk/
+**/.adk/
+__pycache__/
+*.py[cod]
+.DS_Store
+*.log
+/capability_config.json
+/capabilities/skill_library/
+
+# Tutorials, demo agents and unsaved local drafts
+/my_agent/
+/deepseek_pro/
+/credit_mannager/
+/credit_manager/tmp/
+/examples/
+/validate_skill_scripts.py
+
+# Local collaboration records and generated acceptance output
+/AGENTS.md
+/task_plan.md
+/findings.md
+/progress.md
+/validation_*.json
+
+# Superseded prompts and local publication/audit snapshots
+/prompts/credit_manager_prompt_design_v1.md
+/prompts/credit_manager_system_prompt_v1.txt
+/docs/*
+!/docs/credit-manager-skills-design-v1.md
+!/docs/credit-skills-detailed-design-v1/

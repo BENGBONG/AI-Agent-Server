@@ -1,0 +1,15 @@
+{
+  "date": "2026-10-23",
+  "result": "PASS",
+  "scope": "document_structure_only",
+  "skills": 12,
+  "rule_definitions": 89,
+  "global_rules": 8,
+  "business_rules": 81,
+  "acceptance_scenarios": 72,
+  "markdown_files": 38,
+  "local_links_checked": 98,
+  "json_examples_parsed": 12,
+  "runtime_imported": false,
+  "issues": []
+}

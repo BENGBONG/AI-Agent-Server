@@ -1,0 +1,230 @@
+{
+  "version": "design-v1",
+  "date": "2026-10-23",
+  "global_rule_ids": [
+    "G01",
+    "G02",
+    "G03",
+    "G04",
+    "G05",
+    "G06",
+    "G07",
+    "G08"
+  ],
+  "skills": [
+    {
+      "id": "B01",
+      "name": "credit-bill-management",
+      "title": "账单管理",
+      "directory": "B01-credit-bill-management",
+      "rules": [
+        "B01-R01",
+        "B01-R02",
+        "B01-R03",
+        "B01-R04",
+        "B01-R05",
+        "B01-R06",
+        "B01-R07"
+      ],
+      "flow_steps": 7,
+      "scenarios": 6,
+      "state": "design_only"
+    },
+    {
+      "id": "B02",
+      "name": "credit-repayment-planning",
+      "title": "还款规划",
+      "directory": "B02-credit-repayment-planning",
+      "rules": [
+        "B02-R01",
+        "B02-R02",
+        "B02-R03",
+        "B02-R04",
+        "B02-R05",
+        "B02-R06",
+        "B02-R07"
+      ],
+      "flow_steps": 6,
+      "scenarios": 6,
+      "state": "design_only"
+    },
+    {
+      "id": "B03",
+      "name": "credit-cost-analysis",
+      "title": "费用分析",
+      "directory": "B03-credit-cost-analysis",
+      "rules": [
+        "B03-R01",
+        "B03-R02",
+        "B03-R03",
+        "B03-R04",
+        "B03-R05",
+        "B03-R06",
+        "B03-R07",
+        "B03-R08"
+      ],
+      "flow_steps": 6,
+      "scenarios": 6,
+      "state": "design_only"
+    },
+    {
+      "id": "B04",
+      "name": "credit-repayment-support",
+      "title": "还款支持",
+      "directory": "B04-credit-repayment-support",
+      "rules": [
+        "B04-R01",
+        "B04-R02",
+        "B04-R03",
+        "B04-R04",
+        "B04-R05",
+        "B04-R06"
+      ],
+      "flow_steps": 6,
+      "scenarios": 6,
+      "state": "design_only"
+    },
+    {
+      "id": "B05",
+      "name": "credit-lender-contact",
+      "title": "机构联系",
+      "directory": "B05-credit-lender-contact",
+      "rules": [
+        "B05-R01",
+        "B05-R02",
+        "B05-R03",
+        "B05-R04",
+        "B05-R05",
+        "B05-R06"
+      ],
+      "flow_steps": 5,
+      "scenarios": 6,
+      "state": "design_only"
+    },
+    {
+      "id": "B06",
+      "name": "credit-negotiation-assistance",
+      "title": "协商辅助",
+      "directory": "B06-credit-negotiation-assistance",
+      "rules": [
+        "B06-R01",
+        "B06-R02",
+        "B06-R03",
+        "B06-R04",
+        "B06-R05",
+        "B06-R06",
+        "B06-R07"
+      ],
+      "flow_steps": 7,
+      "scenarios": 6,
+      "state": "design_only"
+    },
+    {
+      "id": "B07",
+      "name": "credit-complaint-assistance",
+      "title": "投诉辅助",
+      "directory": "B07-credit-complaint-assistance",
+      "rules": [
+        "B07-R01",
+        "B07-R02",
+        "B07-R03",
+        "B07-R04",
+        "B07-R05",
+        "B07-R06"
+      ],
+      "flow_steps": 6,
+      "scenarios": 6,
+      "state": "design_only"
+    },
+    {
+      "id": "B08",
+      "name": "credit-report-interpretation",
+      "title": "征信解读",
+      "directory": "B08-credit-report-interpretation",
+      "rules": [
+        "B08-R01",
+        "B08-R02",
+        "B08-R03",
+        "B08-R04",
+        "B08-R05",
+        "B08-R06",
+        "B08-R07"
+      ],
+      "flow_steps": 6,
+      "scenarios": 6,
+      "state": "design_only"
+    },
+    {
+      "id": "B09",
+      "name": "credit-loan-matching",
+      "title": "产品匹配",
+      "directory": "B09-credit-loan-matching",
+      "rules": [
+        "B09-R01",
+        "B09-R02",
+        "B09-R03",
+        "B09-R04",
+        "B09-R05",
+        "B09-R06",
+        "B09-R07",
+        "B09-R08"
+      ],
+      "flow_steps": 7,
+      "scenarios": 6,
+      "state": "design_only"
+    },
+    {
+      "id": "C01",
+      "name": "credit-information-intake",
+      "title": "信息采集",
+      "directory": "C01-credit-information-intake",
+      "rules": [
+        "C01-R01",
+        "C01-R02",
+        "C01-R03",
+        "C01-R04",
+        "C01-R05",
+        "C01-R06"
+      ],
+      "flow_steps": 6,
+      "scenarios": 6,
+      "state": "design_only"
+    },
+    {
+      "id": "C02",
+      "name": "credit-evidence-review",
+      "title": "材料核验",
+      "directory": "C02-credit-evidence-review",
+      "rules": [
+        "C02-R01",
+        "C02-R02",
+        "C02-R03",
+        "C02-R04",
+        "C02-R05",
+        "C02-R06"
+      ],
+      "flow_steps": 6,
+      "scenarios": 6,
+      "state": "design_only"
+    },
+    {
+      "id": "C03",
+      "name": "credit-profile-memory",
+      "title": "画像与记忆",
+      "directory": "C03-credit-profile-memory",
+      "rules": [
+        "C03-R01",
+        "C03-R02",
+        "C03-R03",
+        "C03-R04",
+        "C03-R05",
+        "C03-R06",
+        "C03-R07"
+      ],
+      "flow_steps": 6,
+      "scenarios": 6,
+      "state": "design_only"
+    }
+  ],
+  "state": "design_only"
+}

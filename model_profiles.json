@@ -1,0 +1,16 @@
+{
+  "default_profile": "flash",
+  "api_base": "https://api.deepseek.com",
+  "profiles": {
+    "flash": {
+      "model": "deepseek-flash",
+      "description": "DeepSeek Flash 本地助手，可查询北京时间。",
+      "thinking": "disabled"
+    },
+    "pro": {
+      "model": "deepseek-v4-pro",
+      "description": "DeepSeek V4 Pro 本地助手，可查询北京时间。",
+      "thinking": "disabled"
+    }
+  }
+}
